@@ -1,0 +1,360 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "NOVA HUB"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Size = UDim2.new(0, 230, 0, 350)
+main.Position = UDim2.new(0, 20, 0, 50)
+main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+main.BorderSizePixel = 0
+main.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = main
+
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 45)
+titleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = main
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 10)
+titleCorner.Parent = titleBar
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -50, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "NOVA HUB"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 20
+title.Font = Enum.Font.SourceSansBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = titleBar
+
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 35, 0, 35)
+closeButton.Position = UDim2.new(1, -40, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextSize = 18
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.Parent = titleBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeButton
+
+local reopenButton = Instance.new("TextButton")
+reopenButton.Name = "OPEN NOVA"
+reopenButton.Size = UDim2.new(0, 130, 0, 45)
+reopenButton.Position = UDim2.new(0, 20, 0, 400)
+reopenButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+reopenButton.Text = "OPEN NOVA"
+reopenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+reopenButton.TextSize = 17
+reopenButton.Font = Enum.Font.SourceSansBold
+reopenButton.Visible = false
+reopenButton.Parent = gui
+
+local reopenCorner = Instance.new("UICorner")
+reopenCorner.CornerRadius = UDim.new(0, 10)
+reopenCorner.Parent = reopenButton
+
+local mainSavedPosition = main.Position
+local reopenSavedPosition = reopenButton.Position
+
+local function makeDraggable(object, savePosition)
+	local dragging = false
+	local dragStart
+	local startPosition
+
+	object.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+
+			dragging = true
+			dragStart = input.Position
+			startPosition = object.Position
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if not dragging then
+			return
+		end
+
+		if input.UserInputType == Enum.UserInputType.MouseMovement
+			or input.UserInputType == Enum.UserInputType.Touch then
+
+			local delta = input.Position - dragStart
+
+			local newPosition = UDim2.new(
+				startPosition.X.Scale,
+				startPosition.X.Offset + delta.X,
+				startPosition.Y.Scale,
+				startPosition.Y.Offset + delta.Y
+			)
+
+			object.Position = newPosition
+			savePosition(newPosition)
+		end
+	end)
+
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+
+			dragging = false
+		end
+	end)
+end
+
+makeDraggable(main, function(position)
+	mainSavedPosition = position
+end)
+
+makeDraggable(reopenButton, function(position)
+	reopenSavedPosition = position
+end)
+
+closeButton.Activated:Connect(function()
+	mainSavedPosition = main.Position
+	main.Visible = false
+
+	reopenButton.Position = reopenSavedPosition
+	reopenButton.Visible = true
+end)
+
+reopenButton.Activated:Connect(function()
+	main.Position = mainSavedPosition
+	reopenButton.Position = reopenSavedPosition
+
+	main.Visible = true
+	reopenButton.Visible = false
+end)
+
+local function createButton(text, y)
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(1, -20, 0, 45)
+	button.Position = UDim2.new(0, 10, 0, y)
+	button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+	button.Text = text
+	button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	button.TextSize = 17
+	button.Font = Enum.Font.SourceSansBold
+	button.Parent = main
+
+	local buttonCorner = Instance.new("UICorner")
+	buttonCorner.CornerRadius = UDim.new(0, 8)
+	buttonCorner.Parent = button
+
+	return button
+end
+
+local escapeButton = createButton("Auto Escape", 60)
+local prisonButton = createButton("Raid Prison", 115)
+local gunButton = createButton("Take Gun", 170)
+local towerButton = createButton("Tp Tower", 225)
+local espButton = createButton("ESP: OFF", 280)
+
+local function teleport(cframe)
+	local character = player.Character
+
+	if character then
+		character:PivotTo(cframe)
+	end
+end
+
+escapeButton.Activated:Connect(function()
+	teleport(CFrame.new(
+		-922.427979, 93.8271255, 2168.27686,
+		0.943993211, -7.8855571e-08, 0.329964876,
+		5.86551039e-08, 1, 7.11759043e-08,
+		-0.329964876, -5.86551039e-08, 0.943993211
+	))
+end)
+
+prisonButton.Activated:Connect(function()
+	teleport(CFrame.new(
+		786.597229, 99.9899979, 2359.73193,
+		0.152688935, 3.60968433e-09, 0.988274276,
+		-5.90896931e-09, 1, -2.73957346e-09,
+		-0.988274276, -1.02317909e-09, 0.152688935
+	))
+end)
+
+gunButton.Activated:Connect(function()
+	teleport(CFrame.new(
+		816.499756, 99.9766541, 2232.63477,
+		0.982720554, 0, 0.1850954,
+		0, 1, 0,
+		-0.1850954, 0, 0.982720554
+	))
+end)
+
+towerButton.Activated:Connect(function()
+	teleport(CFrame.new(
+		831.631653, 125.839981, 2583.03418,
+		0.00511119701, -8.09101479e-08, 0.999986947,
+		-4.30529106e-08, 1, 8.11312617e-08,
+		-0.999986947, -4.26416682e-08, 0.00511119701
+	))
+end)
+
+local espEnabled = false
+local espObjects = {}
+
+local function getTeamColor(target)
+	local team = target.Team
+
+	if team then
+		if team.Name == "Police" then
+			return Color3.fromRGB(0, 100, 255)
+		elseif team.Name == "Prisoner" then
+			return Color3.fromRGB(255, 170, 0)
+		elseif team.Name == "Criminal" then
+			return Color3.fromRGB(255, 0, 0)
+		end
+	end
+
+	return Color3.fromRGB(255, 255, 255)
+end
+
+local function removeESP(target)
+	if espObjects[target] then
+		for _, object in ipairs(espObjects[target]) do
+			if object then
+				object:Destroy()
+			end
+		end
+
+		espObjects[target] = nil
+	end
+end
+
+local function addESP(target)
+	if target == player or not espEnabled then
+		return
+	end
+
+	removeESP(target)
+
+	local character = target.Character
+
+	if not character then
+		return
+	end
+
+	local head = character:FindFirstChild("Head")
+
+	if not head then
+		return
+	end
+
+	local color = getTeamColor(target)
+	local teamName = target.Team and target.Team.Name or "No Team"
+
+	local highlight = Instance.new("Highlight")
+	highlight.Name = "NOVA_ESP"
+	highlight.Adornee = character
+	highlight.FillColor = color
+	highlight.OutlineColor = color
+	highlight.FillTransparency = 0.5
+	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	highlight.Parent = character
+
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "NOVA_ESP"
+	billboard.Adornee = head
+	billboard.Size = UDim2.new(0, 200, 0, 40)
+	billboard.StudsOffset = Vector3.new(0, 3, 0)
+	billboard.AlwaysOnTop = true
+	billboard.Parent = head
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = target.Name .. " [" .. teamName .. "]"
+	label.TextColor3 = color
+	label.TextScaled = true
+	label.Font = Enum.Font.SourceSansBold
+	label.TextStrokeTransparency = 0
+	label.Parent = billboard
+
+	espObjects[target] = {
+		highlight,
+		billboard
+	}
+end
+
+local function refreshESP()
+	for _, target in ipairs(Players:GetPlayers()) do
+		if target ~= player then
+			if espEnabled then
+				addESP(target)
+			else
+				removeESP(target)
+			end
+		end
+	end
+end
+
+espButton.Activated:Connect(function()
+	espEnabled = not espEnabled
+
+	if espEnabled then
+		espButton.Text = "ESP: ON"
+	else
+		espButton.Text = "ESP: OFF"
+	end
+
+	refreshESP()
+end)
+
+local function setupPlayer(target)
+	if target == player then
+		return
+	end
+
+	target.CharacterAdded:Connect(function()
+		task.wait(0.5)
+
+		if espEnabled then
+			addESP(target)
+		end
+	end)
+
+	target:GetPropertyChangedSignal("Team"):Connect(function()
+		if espEnabled then
+			addESP(target)
+		end
+	end)
+end
+
+for _, target in ipairs(Players:GetPlayers()) do
+	setupPlayer(target)
+end
+
+Players.PlayerAdded:Connect(function(target)
+	setupPlayer(target)
+
+	if espEnabled then
+		task.wait(0.5)
+		addESP(target)
+	end
+end)
+
+Players.PlayerRemoving:Connect(function(target)
+	removeESP(target)
+end)
